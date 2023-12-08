@@ -50,10 +50,56 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// GET DATA PRODUCT FROM SERVER
+const API_URL = 'http://localhost:5000'
+const sectionElement = document.getElementById('product-section')
+
+const getProducts = async() =>{
+  try {
+    const productResponse = await fetch(`${API_URL}/product`, {method: 'GET'})
+    const productData = await productResponse.json()
+
+    console.log(productData)
+    return productData
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+} 
+
+const appendProductToProductSection = (product) =>{
+  const productHTMLElement = document.createElement('div')
+  productHTMLElement.className = 'product-card'
+
+  productHTMLElement.innerHTML = `
+  <div class="product-image" style="background-image: url('${API_URL}${product.product_picture}');"></div>
+  <div class="product-title">${product.name}</div>
+  <div class="product-price">${product.price}</div>
+  <div class="quantity-controls">
+    <button class="decrement blue-button">-</button>
+        <span class="quantity">0</span>
+    <button class="increment blue-button">+</button>
+  </div
+  `
+  sectionElement.appendChild(productHTMLElement)
+}
+
+document.addEventListener('DOMContentLoaded', async() => {
+  try {
+    const product = await getProducts()
+    product.forEach(appendProductToProductSection)
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+})
+
 // OUR PRODUCT
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener(function () {
   const productCards = document.querySelectorAll('.product-card');
-  const orderNowButton = document.getElementById('order-now');
+  const orderNowButton = document.getElementById('order-now');  
 
   productCards.forEach(function (card) {
     const incrementButton = card.querySelector('.increment');
