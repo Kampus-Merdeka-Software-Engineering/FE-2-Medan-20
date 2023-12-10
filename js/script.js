@@ -1,5 +1,6 @@
 'use strict';
 
+
 /**
  * navbar toggle
  */
@@ -11,8 +12,6 @@ const navCloseBtn = document.querySelector("[data-nav-close-btn]");
 const navLinks = document.querySelectorAll("[data-nav-link]");
 
 const navElemArr = [navOpenBtn, navCloseBtn, overlay];
-
-
 
 /**
  * header sticky & go to top
