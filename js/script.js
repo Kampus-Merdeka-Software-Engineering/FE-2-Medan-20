@@ -1,5 +1,6 @@
 'use strict';
 
+
 /**
  * navbar toggle
  */
@@ -11,8 +12,6 @@ const navCloseBtn = document.querySelector("[data-nav-close-btn]");
 const navLinks = document.querySelectorAll("[data-nav-link]");
 
 const navElemArr = [navOpenBtn, navCloseBtn, overlay];
-
-
 
 /**
  * header sticky & go to top
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // GET DATA PRODUCT FROM SERVER
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://be-2-medan-20-production.up.railway.app'
 const sectionElement = document.getElementById('product-section')
 
 const getProducts = async() =>{
@@ -97,9 +96,9 @@ document.addEventListener('DOMContentLoaded', async() => {
 })
 
 // OUR PRODUCT
-document.addEventListener(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const productCards = document.querySelectorAll('.product-card');
-  const orderNowButton = document.getElementById('order-now');  
+  const orderNowButton = document.getElementById('order-now');
 
   productCards.forEach(function (card) {
     const incrementButton = card.querySelector('.increment');
@@ -126,52 +125,145 @@ document.addEventListener(function () {
   });
 
   orderNowButton.addEventListener('click', function () {
-    let totalPrice = 0;
 
-    productCards.forEach(function (card) {
-      const price = parseFloat(card.getAttribute('data-price'));
-      const quantity = parseInt(card.querySelector('.quantity').textContent);
-      totalPrice += price * quantity;
-    });
-
-    window.location.href = `order.html?total=${totalPrice.toFixed(2)}`;
+    window.location.href = "order.html" ;
   });
 });
 
-
-
-// PAGE ORDER
+// POST ORDER TO SERVER
 document.getElementById('order-form').addEventListener('submit', function(event) {
-  event.preventDefault();
+  event.preventDefault(); // Prevent the form from submitting in the traditional way
 
-  var name = document.getElementById('name').value;
-  var phone = document.getElementById('phone').value;
-  var address = document.getElementById('address').value;
+  // Get form values
+  const name = document.getElementById('name').value;
+  const phone = document.getElementById('phone').value;
+  const address = document.getElementById('address').value;
 
-  var selectedProduct = '';
+  // Create an object with the form data
+  const formData = {
+    orderId: 1,
+    name: name,
+    phone: phone,
+    address: address
+  };
 
-  document.getElementById('food-item').innerText = selectedProduct;
-
-  alert('Order created successfully!\n\nDetails:\nName: ' + name + '\nPhone: ' + phone + '\nAddress: ' + address + '\nProduct: ' + selectedProduct);
+  // Send the form data to the server using fetch
+  fetch('https://be-2-medan-20-production.up.railway.app/place-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+      // Reset the form if needed
+      const form = document.getElementById('order-form');
+      if (form) {
+        form.reset();
+      }
+      alert(data.message);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get('name');
-  const phone = params.get('phone');
-  const address = params.get('address');
-  const product = params.get('product');
 
-  // Menampilkan informasi pesanan
-  document.getElementById('order-info-name').innerText = name;
-  document.getElementById('order-info-phone').innerText = phone;
-  document.getElementById('order-info-address').innerText = address;
-  document.getElementById('order-info-product').innerText = product;
-});
+// GET DATA ORDERDETAILS FROM SERVER
+const detailElement = document.getElementById("order-details")
+const getOrderDetails = async() =>{
+  try {
+    const orderDetailResponse = await fetch(`${API_URL}/view-order-detail/1`, {method: 'GET'})
+    const orderDetailData = await orderDetailResponse.json()
 
+    console.log(orderDetailData)
+    return orderDetailData
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+} 
 
-// Untuk button click
+const appendOrderToOrderDetails = (orderDetails) =>{
+  const orderDetailHTMLElement = document.createElement('table')
+  orderDetailHTMLElement.className = 'order-table'
 
-function redirectToOrderPage() {
-  window.location.href = "cart.html";
+  orderDetailHTMLElement.innerHTML = `
+      <tr>
+          <th colspan="2">Customer Details</th>
+      </tr>
+      <tr>
+          <td><strong>Name:</strong></td>
+          <td><span>${orderDetails.name}</span></td>
+      </tr>
+      <tr>
+          <td><strong>Phone:</strong></td>
+          <td><span>${orderDetails.phone}</span></td>
+      </tr>
+      <tr>
+          <td><strong>Address:</strong></td>
+          <td><span>${orderDetails.address}</span></td>
+      </tr>
+      <tr>
+          <td><strong>Product:</strong></td>
+          <td><span>${orderDetails.product}</span></td>
+      </tr>
+      <tr>
+          <th colspan="2">Total Price</th>
+      </tr>
+      <tr>
+          <td colspan="2"><strong>$ <span>${orderDetails.total_price}</span></strong></td>
+      </tr>
+  `
+  detailElement.appendChild(orderDetailHTMLElement)
 }
+
+document.addEventListener('DOMContentLoaded', async() => {
+  try {
+    const orderDetail = await getOrderDetails()
+    orderDetail.forEach(appendOrderToOrderDetails)
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+})
+
+
+// GET DATA ORDER FROM SERVER
+const orderElement = document.getElementById("food-item")
+const getOrder = async() =>{
+  try {
+    const orderResponse = await fetch(`${API_URL}/view-order/1`, {method: 'GET'})
+    const orderData = await orderResponse.json()
+
+    console.log(orderData)
+    return orderData
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+} 
+
+const appendOrder = (orders) =>{
+  const orderHTMLElement = document.createElement('p')
+  orderHTMLElement.innerHTML = `
+      <p><strong>Product:</strong><span>${orders.orderItems.product}</span></p>
+  `
+  orderElement.appendChild(orderHTMLElement)
+}
+
+document.addEventListener('DOMContentLoaded', async() => {
+  try {
+    const order = await getOrder()
+    order.forEach(appendOrder)
+  } catch (error) {
+    console.error({
+      error
+    })
+  }
+})
